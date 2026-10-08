@@ -1,1 +1,724 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planner de Estudos Inteligente</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: 'var(--color-50)',
+                            100: 'var(--color-100)',
+                            500: 'var(--color-500)',
+                            600: 'var(--color-600)',
+                            700: 'var(--color-700)',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 
+    <style>
+        :root {
+            --color-50: #f0f5ff;
+            --color-100: #e0eaee;
+            --color-500: #6366f1;
+            --color-600: #4f46e5;
+            --color-700: #4338ca;
+            --gradient-from: #6366f1;
+            --gradient-to: #a855f7;
+        }
+
+        /* Temas Dinâmicos */
+        [data-theme="purple"] {
+            --color-50: #faf5ff;
+            --color-100: #f3e8ff;
+            --color-500: #9333ea;
+            --color-600: #7e22ce;
+            --color-700: #6b21a8;
+            --gradient-from: #a855f7;
+            --gradient-to: #ec4899;
+        }
+
+        [data-theme="blue"] {
+            --color-50: #f0f9ff;
+            --color-100: #e0f2fe;
+            --color-500: #0284c7;
+            --color-600: #0369a1;
+            --color-700: #075985;
+            --gradient-from: #06b6d4;
+            --gradient-to: #3b82f6;
+        }
+
+        [data-theme="emerald"] {
+            --color-50: #ecfdf5;
+            --color-100: #d1fae5;
+            --color-500: #10b981;
+            --color-600: #059669;
+            --color-700: #047857;
+            --gradient-from: #10b981;
+            --gradient-to: #06b6d4;
+        }
+
+        [data-theme="sunset"] {
+            --color-50: #fff7ed;
+            --color-100: #ffedd5;
+            --color-500: #f97316;
+            --color-600: #ea580c;
+            --color-700: #c2410c;
+            --gradient-from: #f97316;
+            --gradient-to: #ef4444;
+        }
+
+        .bg-gradient-brand {
+            background: linear-gradient(135deg, var(--gradient-from), var(--gradient-to));
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, var(--gradient-from), var(--gradient-to));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .dark .glass-card {
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Animações e Efeitos */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(99, 102, 241, 0.4); }
+            50% { box-shadow: 0 0 25px rgba(168, 85, 247, 0.7); }
+        }
+
+        .timer-active {
+            animation: pulse-glow 2s infinite;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-300 font-sans pb-12">
+
+    <header class="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 py-3 shadow-sm">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
+            
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-brand flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-graduation-cap text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-tight">EstudoSync</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Cronograma de Estudos Inteligente</p>
+                </div>
+            </div>
+
+            <!-- Seleção de Temas -->
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-full border border-slate-200 dark:border-slate-700">
+                    <span class="text-xs font-semibold px-2 text-slate-500 dark:text-slate-400">Tema:</span>
+                    <button onclick="setTheme('indigo')" class="w-6 h-6 rounded-full bg-indigo-600 hover:scale-110 transition-transform shadow-sm" title="Índigo Violeta"></button>
+                    <button onclick="setTheme('purple')" class="w-6 h-6 rounded-full bg-purple-600 hover:scale-110 transition-transform shadow-sm" title="Púrpura Vibrante"></button>
+                    <button onclick="setTheme('blue')" class="w-6 h-6 rounded-full bg-sky-500 hover:scale-110 transition-transform shadow-sm" title="Azul Elétrico"></button>
+                    <button onclick="setTheme('emerald')" class="w-6 h-6 rounded-full bg-emerald-500 hover:scale-110 transition-transform shadow-sm" title="Verde Esmeralda"></button>
+                    <button onclick="setTheme('sunset')" class="w-6 h-6 rounded-full bg-orange-500 hover:scale-110 transition-transform shadow-sm" title="Pôr do Sol"></button>
+                </div>
+
+                <!-- Botão Dark Mode -->
+                <button id="theme-toggle" onclick="toggleDarkMode()" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                    <i class="fa-solid fa-moon dark:hidden"></i>
+                    <i class="fa-solid fa-sun hidden dark:block text-amber-400"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <section class="lg:col-span-4 space-y-6">
+            
+            <!-- Configuração de Tempo Disponível -->
+            <div class="glass-card p-6 rounded-2xl shadow-xl">
+                <h2 class="text-lg font-bold mb-4 flex items-center space-x-2">
+                    <i class="fa-solid fa-clock text-gradient"></i>
+                    <span>Disponibilidade Diária</span>
+                </h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Horas de Estudo por Dia</label>
+                        <div class="flex items-center space-x-3">
+                            <input type="range" id="dailyHours" min="1" max="12" step="0.5" value="4" oninput="updateHoursLabel(this.value)" class="w-full accent-brand-500 cursor-pointer">
+                            <span id="hoursValue" class="font-bold text-lg text-brand-600 dark:text-brand-500 min-w-[3rem] text-right">4.0h</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 pt-2">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Dias da Semana</label>
+                            <select id="studyDays" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm font-medium focus:ring-2 focus:ring-brand-500 outline-none">
+                                <option value="5">Segunda a Sexta (5d)</option>
+                                <option value="6">Segunda a Sábado (6d)</option>
+                                <option value="7" selected>Todos os Dias (7d)</option>
+                                <option value="4">4 Dias por Semana</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Turno Preferencial</label>
+                            <select id="preferredShift" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm font-medium focus:ring-2 focus:ring-brand-500 outline-none">
+                                <option value="08:00">Manhã (08:00)</option>
+                                <option value="14:00" selected>Tarde (14:00)</option>
+                                <option value="19:00">Noite (19:00)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulário de Cadastro de Disciplina -->
+            <div class="glass-card p-6 rounded-2xl shadow-xl">
+                <h2 class="text-lg font-bold mb-4 flex items-center space-x-2">
+                    <i class="fa-solid fa-book-open text-gradient"></i>
+                    <span>Cadastrar Disciplina</span>
+                </h2>
+
+                <form id="subjectForm" onsubmit="addSubject(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Nome da Disciplina</label>
+                        <input type="text" id="subName" required placeholder="Ex: Matemática, História..." class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 outline-none transition">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Data da Prova</label>
+                            <input type="date" id="subDate" required class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 outline-none transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Dificuldade / Peso</label>
+                            <select id="subWeight" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 outline-none transition">
+                                <option value="1">Baixa (Fácil)</option>
+                                <option value="2" selected>Média (Normal)</option>
+                                <option value="3">Alta (Difícil)</option>
+                                <option value="4">Crítica (Urgente)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Cor Temática</label>
+                        <div class="flex items-center space-x-2">
+                            <input type="color" id="subColor" value="#4f46e5" class="w-10 h-10 rounded-xl cursor-pointer border-0 bg-transparent">
+                            <span class="text-xs text-slate-500">Escolha a cor para identificar a matéria</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-gradient-brand text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-500/25 hover:opacity-95 transition transform active:scale-98 flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Adicionar Disciplina</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Lista de Disciplinas Cadastradas -->
+            <div class="glass-card p-6 rounded-2xl shadow-xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold flex items-center space-x-2">
+                        <i class="fa-solid fa-list-check text-gradient"></i>
+                        <span>Minhas Matérias</span>
+                    </h2>
+                    <span id="subjectCount" class="bg-brand-100 dark:bg-brand-900/50 text-brand-700 dark:text-brand-300 text-xs font-bold px-2.5 py-1 rounded-full">0</span>
+                </div>
+
+                <div id="subjectsList" class="space-y-3 max-h-60 overflow-y-auto pr-1">
+                    <p class="text-slate-400 text-sm text-center py-4">Nenhuma disciplina adicionada ainda.</p>
+                </div>
+
+                <button onclick="generateSchedule()" id="btnGenerate" class="w-full mt-5 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-extrabold py-3.5 rounded-xl shadow-lg hover:bg-slate-800 dark:hover:bg-white transition flex items-center justify-center space-x-2 disabled:opacity-50">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>Gerar Cronograma de Estudos</span>
+                </button>
+            </div>
+        </section>
+
+        <section class="lg:col-span-8 space-y-6">
+
+            <!-- Card de Sessão de Estudo Ativa / Cronômetro -->
+            <div id="timerCard" class="glass-card p-6 rounded-2xl shadow-xl border-2 border-brand-500/30 relative overflow-hidden hidden">
+                <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-brand-500/10 rounded-full blur-2xl"></div>
+
+                <div class="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+                    <div>
+                        <span class="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold px-3 py-1 rounded-full inline-flex items-center gap-1.5 mb-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                            Sessão em Andamento
+                        </span>
+                        <h3 id="timerSubjectName" class="text-2xl font-black">Matemática Avançada</h3>
+                        <p id="timerSubjectMeta" class="text-sm text-slate-500 dark:text-slate-400">Tempo estimado: 45 min</p>
+                    </div>
+
+                    <!-- Display do Cronômetro -->
+                    <div class="text-center">
+                        <div id="timerDisplay" class="text-5xl font-black font-mono tracking-wider text-gradient">00:00</div>
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Tempo Restante</span>
+                    </div>
+
+                    <!-- Controle do Cronômetro -->
+                    <div class="flex items-center space-x-2">
+                        <button id="btnPauseTimer" onclick="togglePauseTimer()" class="w-12 h-12 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-lg hover:bg-amber-600 transition">
+                            <i class="fa-solid fa-pause text-lg"></i>
+                        </button>
+                        <button onclick="stopTimer()" class="w-12 h-12 rounded-xl bg-rose-500 text-white flex items-center justify-center shadow-lg hover:bg-rose-600 transition">
+                            <i class="fa-solid fa-square text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cronograma Gerado -->
+            <div class="glass-card p-6 rounded-2xl shadow-xl">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold flex items-center space-x-2">
+                            <i class="fa-solid fa-calendar-days text-gradient"></i>
+                            <span>Seu Cronograma Personalizado</span>
+                        </h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Baseado no tempo até as provas e no nível de dificuldade</p>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <button onclick="exportToGoogleCalendarAll()" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold px-3.5 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition flex items-center space-x-2 shadow-sm">
+                            <i class="fa-brands fa-google text-red-500"></i>
+                            <span>Sincronizar Google Agenda</span>
+                        </button>
+                        <button onclick="downloadICS()" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold px-3.5 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition flex items-center space-x-2 shadow-sm" title="Baixar Arquivo .ICS">
+                            <i class="fa-solid fa-download text-brand-500"></i>
+                            <span>.ICS</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Grid de Dias do Cronograma -->
+                <div id="scheduleContainer" class="space-y-4">
+                    <div class="text-center py-12 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+                        <i class="fa-solid fa-calendar-plus text-4xl text-slate-300 dark:text-slate-600 mb-3"></i>
+                        <p class="text-slate-500 dark:text-slate-400 font-medium">Cadastre suas matérias e clique em "Gerar Cronograma"</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Notificações Toast em Tempo Real -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2"></div>
+
+    <script>
+        let subjects = JSON.parse(localStorage.getItem('estudo_subjects')) || [];
+        let schedule = JSON.parse(localStorage.getItem('estudo_schedule')) || [];
+        let timerInterval = null;
+        let timerSecondsLeft = 0;
+        let isTimerPaused = false;
+        let activeSessionSubject = null;
+
+        // Som de Alerta (Audio Web API Synthesizer para não depender de arquivos externos)
+        function playAlertSound(type = 'start') {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                if (type === 'start') {
+                    osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+                    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.3); // A5
+                } else {
+                    osc.frequency.setValueAtTime(880, ctx.currentTime); // A5
+                    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.4); // A4
+                }
+
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+
+                osc.start();
+                osc.stop(ctx.currentTime + 0.4);
+            } catch (e) {
+                console.log('Audio Context bloqueado ou não suportado.');
+            }
+        }
+
+        // Solicitar Permissão para Notificações do Navegador
+        if ("Notification" in window && Notification.permission !== "granted") {
+            Notification.requestPermission();
+        }
+
+        function showNotification(title, body) {
+            showToast(`${title}: ${body}`);
+            if ("Notification" in window && Notification.permission === "granted") {
+                new Notification(title, { body, icon: 'https://cdn-icons-png.flaticon.com/512/3208/3208726.png' });
+            }
+        }
+
+        function showToast(message) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'glass-card border-l-4 border-brand-500 px-4 py-3 rounded-xl shadow-2xl text-sm font-semibold flex items-center space-x-2 animate-bounce';
+            toast.innerHTML = `<i class="fa-solid fa-bell text-brand-500"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('estudo_theme', theme);
+        }
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('estudo_dark', document.documentElement.classList.contains('dark'));
+        }
+
+        // Carregar Tema Salvo
+        const savedTheme = localStorage.getItem('estudo_theme') || 'indigo';
+        setTheme(savedTheme);
+        if (localStorage.getItem('estudo_dark') === 'true') {
+            document.documentElement.classList.add('dark');
+        }
+
+        function updateHoursLabel(val) {
+            document.getElementById('hoursValue').innerText = parseFloat(val).toFixed(1) + 'h';
+        }
+
+        function addSubject(e) {
+            e.preventDefault();
+            const name = document.getElementById('subName').value.trim();
+            const date = document.getElementById('subDate').value;
+            const weight = parseInt(document.getElementById('subWeight').value);
+            const color = document.getElementById('subColor').value;
+
+            const newSubject = {
+                id: Date.now().toString(),
+                name,
+                date,
+                weight,
+                color
+            };
+
+            subjects.push(newSubject);
+            saveAndRenderSubjects();
+            document.getElementById('subjectForm').reset();
+            showToast('Disciplina cadastrada com sucesso!');
+        }
+
+        function removeSubject(id) {
+            subjects = subjects.filter(s => s.id !== id);
+            saveAndRenderSubjects();
+        }
+
+        function saveAndRenderSubjects() {
+            localStorage.setItem('estudo_subjects', JSON.stringify(subjects));
+            const list = document.getElementById('subjectsList');
+            document.getElementById('subjectCount').innerText = subjects.length;
+
+            if (subjects.length === 0) {
+                list.innerHTML = `<p class="text-slate-400 text-sm text-center py-4">Nenhuma disciplina adicionada ainda.</p>`;
+                return;
+            }
+
+            list.innerHTML = subjects.map(s => {
+                const daysLeft = Math.ceil((new Date(s.date) - new Date()) / (1000 * 60 * 60 * 24));
+                const daysText = daysLeft < 0 ? 'Já realizada' : `${daysLeft} dias restantes`;
+                
+                return `
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-3.5 h-3.5 rounded-full" style="background-color: ${s.color}"></div>
+                            <div>
+                                <h4 class="font-bold text-sm leading-tight">${s.name}</h4>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Prova: ${new Date(s.date).toLocaleDateString('pt-BR')} • <span class="font-semibold text-brand-600 dark:text-brand-400">${daysText}</span></p>
+                            </div>
+                        </div>
+                        <button onclick="removeSubject('${s.id}')" class="text-slate-400 hover:text-rose-500 p-1.5 transition">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function generateSchedule() {
+            if (subjects.length === 0) {
+                showToast('Adicione pelo menos uma matéria!');
+                return;
+            }
+
+            const dailyHours = parseFloat(document.getElementById('dailyHours').value);
+            const numDays = parseInt(document.getElementById('studyDays').value);
+            const preferredShift = document.getElementById('preferredShift').value;
+
+            // Calcular score de urgência/prioridade para cada matéria
+            const now = new Date();
+            let totalScore = 0;
+
+            const scoredSubjects = subjects.map(sub => {
+                const examDate = new Date(sub.date);
+                const diffTime = Math.max(1, (examDate - now) / (1000 * 60 * 60 * 24)); 
+                
+                // Urgência é inversamente proporcional ao tempo restante até a prova
+                const urgency = 1 / diffTime; 
+                // Score = Peso da matéria * Fator de Urgência
+                const score = sub.weight * (1 + urgency * 10);
+                totalScore += score;
+
+                return { ...sub, score, diffTime };
+            });
+
+            // Distribuição dos dias e sessões
+            schedule = [];
+            const daysOfWeek = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+
+            for (let i = 0; i < numDays; i++) {
+                const currentDate = new Date();
+                currentDate.setDate(now.getDate() + i);
+
+                const dayName = daysOfWeek[currentDate.getDay()];
+                const formattedDate = currentDate.toLocaleDateString('pt-BR');
+
+                let daySessions = [];
+                let currentStartTime = preferredShift;
+
+                // Aloca tempo proporcionalmente com base no score
+                scoredSubjects.forEach(sub => {
+                    const proportion = sub.score / totalScore;
+                    const allocatedHours = dailyHours * proportion;
+                    const minutes = Math.round(allocatedHours * 60);
+
+                    if (minutes >= 15) { // Apenas sessões viáveis (15min+)
+                        const startTime = currentStartTime;
+                        const endTime = addMinutesToTime(startTime, minutes);
+                        currentStartTime = endTime;
+
+                        daySessions.push({
+                            id: Date.now() + Math.random().toString(),
+                            subjectName: sub.name,
+                            color: sub.color,
+                            minutes: minutes,
+                            startTime: startTime,
+                            endTime: endTime,
+                            dateStr: currentDate.toISOString().split('T')[0]
+                        });
+                    }
+                });
+
+                schedule.push({
+                    dayName,
+                    formattedDate,
+                    sessions: daySessions
+                });
+            }
+
+            localStorage.setItem('estudo_schedule', JSON.stringify(schedule));
+            renderSchedule();
+            showToast('Cronograma gerado com sucesso!');
+        }
+
+        function addMinutesToTime(timeStr, minsToAdd) {
+            const [h, m] = timeStr.split(':').map(Number);
+            const date = new Date();
+            date.setHours(h, m + minsToAdd);
+            return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        }
+
+        function renderSchedule() {
+            const container = document.getElementById('scheduleContainer');
+
+            if (!schedule || schedule.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+                        <i class="fa-solid fa-calendar-plus text-4xl text-slate-300 dark:text-slate-600 mb-3"></i>
+                        <p class="text-slate-500 dark:text-slate-400 font-medium">Cadastre suas matérias e clique em "Gerar Cronograma"</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = schedule.map(day => `
+                <div class="bg-slate-100/50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/60">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="font-extrabold text-sm flex items-center space-x-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-brand-500"></span>
+                            <span>${day.dayName}</span>
+                            <span class="text-xs text-slate-400 font-normal">(${day.formattedDate})</span>
+                        </h3>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        ${day.sessions.map(s => `
+                            <div class="bg-white dark:bg-slate-800 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 flex justify-between items-center shadow-sm hover:shadow-md transition">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-1.5 h-10 rounded-full" style="background-color: ${s.color}"></div>
+                                    <div>
+                                        <h4 class="font-bold text-sm">${s.subjectName}</h4>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400 flex items-center space-x-1">
+                                            <i class="fa-regular fa-clock"></i>
+                                            <span>${s.startTime} - ${s.endTime} (${s.minutes} min)</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center space-x-1">
+                                    <button onclick="startStudySession('${s.subjectName}', ${s.minutes})" class="p-2 bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-300 rounded-lg hover:bg-brand-500 hover:text-white transition" title="Iniciar Sessão de Estudo">
+                                        <i class="fa-solid fa-play text-xs"></i>
+                                    </button>
+                                    <button onclick="exportSingleToGoogleCalendar('${s.subjectName}', '${s.dateStr}', '${s.startTime}', '${s.endTime}')" class="p-2 text-slate-400 hover:text-red-500 transition" title="Exportar para Google Agenda">
+                                        <i class="fa-brands fa-google text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function startStudySession(subjectName, minutes) {
+            activeSessionSubject = subjectName;
+            timerSecondsLeft = minutes * 60;
+            isTimerPaused = false;
+
+            document.getElementById('timerSubjectName').innerText = subjectName;
+            document.getElementById('timerSubjectMeta').innerText = `Tempo planejado: ${minutes} minutos`;
+            document.getElementById('timerCard').classList.remove('hidden');
+            document.getElementById('timerCard').scrollIntoView({ behavior: 'smooth' });
+
+            playAlertSound('start');
+            showNotification('Sessão Iniciada!', `Bons estudos em ${subjectName}. O cronômetro começou!`);
+
+            if (timerInterval) clearInterval(timerInterval);
+            updateTimerDisplay();
+
+            timerInterval = setInterval(() => {
+                if (!isTimerPaused) {
+                    timerSecondsLeft--;
+                    updateTimerDisplay();
+
+                    if (timerSecondsLeft <= 0) {
+                        clearInterval(timerInterval);
+                        playAlertSound('end');
+                        showNotification('Sessão Concluída!', `Parabéns! Você finalizou o estudo de ${subjectName}.`);
+                    }
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(timerSecondsLeft / 60);
+            const secs = timerSecondsLeft % 60;
+            document.getElementById('timerDisplay').innerText = 
+                `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function togglePauseTimer() {
+            isTimerPaused = !isTimerPaused;
+            const btn = document.getElementById('btnPauseTimer');
+            btn.innerHTML = isTimerPaused ? `<i class="fa-solid fa-play text-lg"></i>` : `<i class="fa-solid fa-pause text-lg"></i>`;
+            showToast(isTimerPaused ? 'Cronômetro pausado' : 'Cronômetro retomado');
+        }
+
+        function stopTimer() {
+            if (confirm('Deseja realmente encerrar esta sessão de estudos?')) {
+                clearInterval(timerInterval);
+                document.getElementById('timerCard').classList.add('hidden');
+                showToast('Sessão de estudos encerrada.');
+            }
+        }
+
+        function exportSingleToGoogleCalendar(title, dateStr, startTime, endTime) {
+            const startIso = `${dateStr.replace(/-/g, '')}T${startTime.replace(':', '')}00`;
+            const endIso = `${dateStr.replace(/-/g, '')}T${endTime.replace(':', '')}00`;
+            
+            const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Estudar: ' + title)}&dates=${startIso}/${endIso}&details=${encodeURIComponent('Sessão de estudo organizada pelo EstudoSync.')}`;
+            window.open(url, '_blank');
+        }
+
+        function exportToGoogleCalendarAll() {
+            if (!schedule || schedule.length === 0) {
+                showToast('Gere um cronograma primeiro!');
+                return;
+            }
+
+            // Abre a primeira sessão no Google Agenda como demonstração / atalho
+            const firstSession = schedule[0]?.sessions[0];
+            if (firstSession) {
+                exportSingleToGoogleCalendar(firstSession.subjectName, firstSession.dateStr, firstSession.startTime, firstSession.endTime);
+                showToast('Abrindo sessão no Google Agenda...');
+            }
+        }
+
+        function downloadICS() {
+            if (!schedule || schedule.length === 0) {
+                showToast('Gere um cronograma antes de exportar!');
+                return;
+            }
+
+            let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//EstudoSync//Planner de Estudos//PT-BR\n";
+
+            schedule.forEach(day => {
+                day.sessions.forEach(s => {
+                    const startIso = `${s.dateStr.replace(/-/g, '')}T${s.startTime.replace(':', '')}00`;
+                    const endIso = `${s.dateStr.replace(/-/g, '')}T${s.endTime.replace(':', '')}00`;
+
+                    icsContent += "BEGIN:VEVENT\n";
+                    icsContent += `SUMMARY:Estudar ${s.subjectName}\n`;
+                    icsContent += `DTSTART:${startIso}\n`;
+                    icsContent += `DTEND:${endIso}\n`;
+                    icsContent += `DESCRIPTION:Sessão de estudo agendada automaticamente pelo EstudoSync.\n`;
+                    icsContent += "END:VEVENT\n";
+                });
+            });
+
+            icsContent += "END:VCALENDAR";
+
+            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute('download', 'cronograma_estudos.ics');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('Arquivo .ICS baixado!');
+        }
+
+        // Inicialização dos Dados ao Carregar
+        saveAndRenderSubjects();
+        renderSchedule();
+    </script>
+</body>
+</html>
